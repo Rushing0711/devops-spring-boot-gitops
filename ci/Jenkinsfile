@@ -23,6 +23,7 @@ pipeline {
 				script {
 					sh "env"
 					sh '''
+						whoami
 						echo $PATH
 						java -version
 						sleep 100
