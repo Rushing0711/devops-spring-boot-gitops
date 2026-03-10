@@ -23,7 +23,7 @@ pipeline {
 						whoami
 						echo $PATH
 						java -version
-						/opt/apache-maven/bin/mvn -v
+						mvn -v
 					'''
 				}
 			}
@@ -49,7 +49,7 @@ pipeline {
 
 		stage('3. 编译打包') {
 			steps {
-				sh '/opt/apache-maven/bin/mvn package -DskipTests'
+				sh 'mvn package -DskipTests'
 			}
 		}
 
