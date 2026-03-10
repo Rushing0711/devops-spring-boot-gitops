@@ -6,9 +6,6 @@ pipeline {
 	}
 
 	environment {
-		// 完整的 PATH，从容器内复制过来
-		PATH = "/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/apache-maven/bin:/root/.sdkman/candidates/gradle/current/bin:/usr/lib/jvm/java-21-openjdk-arm64/bin:/usr/lib/go-1.24/bin:/home/jenkins/go/bin:/opt/ant/bin"
-
 		HARBOR_ADDR = '192.168.200.116:30002'
 		HARBOR_PROJECT = 'ks-devops-harbor'
 		APP_NAME = 'devops-spring-boot-gitops'
@@ -26,11 +23,7 @@ pipeline {
 						whoami
 						echo $PATH
 						java -version
-
-						# 加载 bash 配置文件
-						source /etc/profile
-						source ~/.bashrc 2>/dev/null || true
-						mvn -v
+						/opt/apache-maven/bin/mvn -v
 					'''
 				}
 			}
