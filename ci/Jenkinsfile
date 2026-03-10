@@ -25,8 +25,11 @@ pipeline {
 					sh '''
 						whoami
 						echo $PATH
-                        echo $SHELL
 						java -version
+
+						# 加载 bash 配置文件
+						source /etc/profile
+						source ~/.bashrc 2>/dev/null || true
 						mvn -v
 					'''
 				}
