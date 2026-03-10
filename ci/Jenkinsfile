@@ -11,10 +11,20 @@ pipeline {
 		APP_NAME = 'devops-spring-boot-gitops'
 		IMAGE_TAG = "${BUILD_NUMBER}"
 		FULL_IMAGE = "${HARBOR_ADDR}/${HARBOR_PROJECT}/${APP_NAME}:${IMAGE_TAG}"
-		GIT_BRANCH = 'main'
+		GIT_BRANCH = 'master'
 	}
 
 	stages {
+		stage('0. 检查环境') {
+			steps {
+				script {
+					sh "env"
+					sh '''java -version'''
+					sh '''mvn --version'''
+				}
+			}
+		}
+
 		stage('1. 检出代码') {
 			steps {
 				checkout(scm)
