@@ -23,6 +23,7 @@ pipeline {
 						whoami
 						echo $PATH
 						java -version
+						sleep 100s
 						/opt/apache-maven/bin/mvn -v
 					'''
 				}
