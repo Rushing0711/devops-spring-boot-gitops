@@ -2,7 +2,6 @@ pipeline {
 	agent {
 		kubernetes {
 			label 'base'
-			agentContainer 'base'
 		}
 	}
 
@@ -18,7 +17,7 @@ pipeline {
 	stages {
 		stage('0. 检查环境') {
 			steps {
-				script {
+				container ('base') {
 					sh "env"
 					sh '''
 						whoami
