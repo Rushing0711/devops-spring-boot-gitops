@@ -20,7 +20,9 @@ pipeline {
 				script {
 					sh "env"
 					sh '''
+					echo $PATH
 					java -version
+					sleep 100
 					mvn -v
 					'''
 				}
