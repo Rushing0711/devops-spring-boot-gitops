@@ -11,7 +11,7 @@ pipeline {
 		APP_NAME = 'devops-spring-boot-gitops'
 		IMAGE_TAG = "${BUILD_NUMBER}"
 		FULL_IMAGE = "${HARBOR_ADDR}/${HARBOR_PROJECT}/${APP_NAME}:${IMAGE_TAG}"
-		GIT_BRANCH = 'master'
+		GIT_BRANCH = "${BRANCH_NAME}"
 	}
 
 	stages {
