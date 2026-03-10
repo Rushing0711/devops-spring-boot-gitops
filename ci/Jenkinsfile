@@ -17,21 +17,28 @@ pipeline {
 	stages {
 		stage('0. 初始化 SDKMAN') {
 			steps {
-				sh '''
+				sh '''#!/bin/bash
                     # 加载 SDKMAN
                     export SDKMAN_DIR="$HOME/.sdkman"
-                    [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+                    if [ -f "$SDKMAN_DIR/bin/sdkman-init.sh" ]; then
+                        source "$SDKMAN_DIR/bin/sdkman-init.sh"
+                        echo "✅ SDKMAN 加载成功"
 
-                    # 查看可用版本
-                    echo "=== 已安装的 Java 版本 ==="
-                    sdk list java | grep installed
+                        # 显示当前使用的版本
+                        echo "=== 当前环境 ==="
+                        sdk current
 
-                    echo "=== 已安装的 Maven 版本 ==="
-                    sdk list maven | grep installed
-
-                    echo "=== 当前使用的版本 ==="
-                    java -version
-                    mvn -version
+                        # 保存完整环境
+                        cat > /tmp/sdkman_complete.sh << 'EOF'
+# SDKMAN 环境
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+EOF
+                        chmod +x /tmp/sdkman_complete.sh
+                    else
+                        echo "❌ SDKMAN 未找到"
+                        exit 1
+                    fi
                 '''
 			}
 		}
