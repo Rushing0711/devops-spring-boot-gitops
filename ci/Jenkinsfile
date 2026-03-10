@@ -19,6 +19,7 @@ pipeline {
 			steps {
 				script {
 					sh "env"
+					sh '''sleep 1000'''
 					sh '''java -version'''
 					sh '''mvn --version'''
 				}
