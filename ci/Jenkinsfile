@@ -15,43 +15,23 @@ pipeline {
 	}
 
 	stages {
-		stage('0. 初始化 SDKMAN') {
-			steps {
-				sh '''#!/bin/bash
-                    # 加载 SDKMAN
-                    export SDKMAN_DIR="$HOME/.sdkman"
-                    if [ -f "$SDKMAN_DIR/bin/sdkman-init.sh" ]; then
-                        source "$SDKMAN_DIR/bin/sdkman-init.sh"
-                        echo "✅ SDKMAN 加载成功"
-
-                        # 显示当前使用的版本
-                        echo "=== 当前环境 ==="
-                        sdk current
-
-                        # 保存完整环境
-                        cat > /tmp/sdkman_complete.sh << 'EOF'
-# SDKMAN 环境
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
-EOF
-                        chmod +x /tmp/sdkman_complete.sh
-                    else
-                        echo "❌ SDKMAN 未找到"
-                        exit 1
-                    fi
-                '''
-			}
-		}
-
 		stage('0. 检查环境') {
 			steps {
 				script {
 					sh "env"
 					sh '''
-					echo $PATH
-					java -version
-					sleep 100
-					mvn -v
+						# 尝试从可能的配置文件加载
+						if [ -f /etc/profile ]; then
+							. /etc/profile
+						fi
+						if [ -f /root/.bashrc ]; then
+							. /root/.bashrc
+						fi
+
+						echo $PATH
+						java -version
+						sleep 100
+						mvn -v
 					'''
 				}
 			}
