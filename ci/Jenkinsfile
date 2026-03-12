@@ -90,7 +90,7 @@ pipeline {
     stage('6. 更新 GitOps 仓库') {
       steps {
         container('base') {
-          withCredentials([usernamePassword(credentialsId: 'github-id', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+          withCredentials([gitUsernamePassword(credentialsId: 'github-id')]) {
             sh """
               git config user.email "ci@kubesphere.local"
               git config user.name "CI Bot"
