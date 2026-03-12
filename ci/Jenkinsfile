@@ -16,6 +16,15 @@ pipeline {
   }
 
   stages {
+  stage('Test execution context') {
+    steps {
+      sh 'echo "Without container: $(hostname)"'
+      container('base') {
+        sh 'echo "With container base: $(hostname)"'
+      }
+    }
+  }
+
     stage('0. 检查环境') {
       steps {
         container('base') {
@@ -30,8 +39,10 @@ pipeline {
 
     stage('1. 检出代码') {
       steps {
-          checkout scm
-          sh 'git log -1 --pretty=format:"Commit: %h - %s"'
+          container('base') {
+              checkout scm
+              sh 'git log -1 --pretty=format:"Commit: %h - %s"'
+          }
       }
     }
 
@@ -89,18 +100,20 @@ pipeline {
 
     stage('6. 更新 GitOps 仓库') {
       steps {
-          withCredentials([gitUsernamePassword(credentialsId: 'github-id')]) {
-            sh """
-              git config user.email "ci@kubesphere.local"
-              git config user.name "CI Bot"
+          container('base') {
+              withCredentials([gitUsernamePassword(credentialsId: 'github-id')]) {
+                sh """
+                  git config user.email "ci@kubesphere.local"
+                  git config user.name "CI Bot"
 
-              # 更新镜像版本
-              sed -i "s|image:.*|image: ${FULL_IMAGE}|" k8s/dev/deployment.yaml
+                  # 更新镜像版本
+                  sed -i "s|image:.*|image: ${FULL_IMAGE}|" k8s/dev/deployment.yaml
 
-              git add k8s/dev/deployment.yaml
-              git commit -m "Auto update image to ${IMAGE_TAG} [skip ci]"
-              git push origin HEAD:${GIT_BRANCH}
-            """
+                  git add k8s/dev/deployment.yaml
+                  git commit -m "Auto update image to ${IMAGE_TAG} [skip ci]"
+                  git push origin HEAD:${GIT_BRANCH}
+                """
+              }
           }
       }
     }
