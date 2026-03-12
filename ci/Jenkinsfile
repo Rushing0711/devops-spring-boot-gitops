@@ -89,7 +89,7 @@ pipeline {
 
     stage('6. 更新 GitOps 仓库') {
       steps {
-//          container('base') {
+          container('base') {
               withCredentials([gitUsernamePassword(credentialsId: 'github-id')]) {
                 sh """
                   git config user.email "ci@kubesphere.local"
@@ -103,7 +103,7 @@ pipeline {
                   git push origin HEAD:${GIT_BRANCH}
                 """
               }
-//          }
+          }
       }
     }
   }
