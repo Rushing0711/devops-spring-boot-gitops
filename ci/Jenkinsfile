@@ -30,10 +30,8 @@ pipeline {
 
     stage('1. 检出代码') {
       steps {
-        container('base') {
           checkout scm
           sh 'git log -1 --pretty=format:"Commit: %h - %s"'
-        }
       }
     }
 
