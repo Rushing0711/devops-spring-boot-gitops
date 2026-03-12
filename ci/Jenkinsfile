@@ -89,20 +89,18 @@ pipeline {
 
     stage('6. 更新 GitOps 仓库') {
       steps {
-          container('base') {
-              withCredentials([gitUsernamePassword(credentialsId: 'github-id')]) {
-                sh """
-                  git config user.email "ci@kubesphere.local"
-                  git config user.name "CI Bot"
+        withCredentials([gitUsernamePassword(credentialsId: 'github-id')]) {
+          sh """
+            git config user.email "ci@kubesphere.local"
+            git config user.name "CI Bot"
 
-                  # 更新镜像版本
-                  sed -i "s|image:.*|image: ${FULL_IMAGE}|" k8s/dev/deployment.yaml
+            # 更新镜像版本
+            sed -i "s|image:.*|image: ${FULL_IMAGE}|" k8s/dev/deployment.yaml
 
-                  git add k8s/dev/deployment.yaml
-                  git commit -m "Auto update image to ${IMAGE_TAG} [skip ci]"
-                  git push origin HEAD:${GIT_BRANCH}
-                """
-              }
+            git add k8s/dev/deployment.yaml
+            git commit -m "Auto update image to ${IMAGE_TAG} [skip ci]"
+            git push origin HEAD:${GIT_BRANCH}
+          """
           }
       }
     }
