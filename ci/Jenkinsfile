@@ -1,114 +1,125 @@
 pipeline {
-	agent {
-		kubernetes {
-			label 'base'
-		}
-	}
+  agent {
+    kubernetes {
+      label 'base'
+    }
+  }
 
-	environment {
-		HARBOR_ADDR = '192.168.200.116:30002'
-		HARBOR_PROJECT = 'ks-devops-harbor'
-		APP_NAME = 'devops-spring-boot-gitops'
-		IMAGE_TAG = "${BUILD_NUMBER}"
-		FULL_IMAGE = "${HARBOR_ADDR}/${HARBOR_PROJECT}/${APP_NAME}:${IMAGE_TAG}"
-		GIT_BRANCH = "${BRANCH_NAME}"
-	}
+  environment {
+    HARBOR_ADDR    = '192.168.200.116:30002'
+    HARBOR_PROJECT = 'ks-devops-harbor'
+    APP_NAME       = 'devops-spring-boot-gitops'
+    IMAGE_TAG      = "${BUILD_NUMBER}"
+    IMAGE          = "${HARBOR_ADDR}/${HARBOR_PROJECT}/${APP_NAME}"
+    FULL_IMAGE     = "${IMAGE}:${IMAGE_TAG}"
+    GIT_BRANCH     = "${BRANCH_NAME}"
+  }
 
-	stages {
-		stage('0. 检查环境') {
-			steps {
-				container ('base') {
-					sh "env"
-					sh '''
-						whoami
-						echo $PATH
-						java -version
-						mvn -v
-					'''
-				}
-			}
-		}
-
-		stage('1. 检出代码') {
-			steps {
-				checkout(scm)
-				sh 'git log -1 --pretty=format:"Commit: %h - %s"'
-			}
-		}
-
-		stage('2. 单元测试') {
-			steps {
-				sh 'mvn clean test'
-			}
-			post {
-				always {
-					junit 'target/surefire-reports/*.xml'
-				}
-			}
-		}
-
-		stage('3. 编译打包') {
-			steps {
-				sh 'mvn package -DskipTests'
-			}
-		}
-
-		stage('4. 构建镜像') {
-			steps {
-				sh '''
-          echo "Building image: ${FULL_IMAGE}"
-          nerdctl build \
-          	-f ci/Dockerfile \
-            -t ${FULL_IMAGE} \
-            --label "build_number=${BUILD_NUMBER}" \
-            --label "git_commit=${GIT_COMMIT}" \
-            .
-        '''
-			}
-		}
-
-		stage('5. 推送镜像到 Harbor') {
-			steps {
-				withCredentials([usernamePassword(
-					credentialsId: 'harbor-id',
-					usernameVariable: 'HARBOR_USER',
-					passwordVariable: 'HARBOR_PASS'
-				)]) {
-					sh '''
-            echo "${HARBOR_PASS}" | nerdctl login ${HARBOR_ADDR} -u ${HARBOR_USER} --password-stdin --insecure-registry
-            nerdctl push ${FULL_IMAGE} --insecure-registry
-            nerdctl tag ${FULL_IMAGE} ${HARBOR_ADDR}/${HARBOR_PROJECT}/${APP_NAME}:latest
-            nerdctl push ${HARBOR_ADDR}/${HARBOR_PROJECT}/${APP_NAME}:latest --insecure-registry
+  stages {
+    stage('0. 检查环境') {
+      steps {
+        container('base') {
+          sh "env"
+          sh '''
+            whoami
+            echo $PATH
           '''
-				}
-			}
-		}
+        }
+      }
+    }
 
-		stage('6. 更新 GitOps 仓库') {
-			steps {
-				withCredentials([gitUsernamePassword(credentialsId: 'git-id')]) {
-					sh '''
-            git config user.email "ci@kubesphere.local"
-            git config user.name "CI Bot"
+    stage('1. 检出代码') {
+      steps {
+        container('base') {
+          checkout scm
+          sh 'git log -1 --pretty=format:"Commit: %h - %s"'
+        }
+      }
+    }
 
-            # 更新镜像版本
-            sed -i "s|image:.*|image: ${FULL_IMAGE}|" k8s/dev/deployment.yaml
+    stage('2. 单元测试') {
+      steps {
+        container('base') {
+          sh 'mvn clean test'
+        }
+      }
+      post {
+        always {
+          junit 'target/surefire-reports/*.xml'
+        }
+      }
+    }
 
-            git add k8s/dev/deployment.yaml
-            git commit -m "Auto update image to ${IMAGE_TAG} [skip ci]"
-            git push origin HEAD:${GIT_BRANCH}
-          '''
-				}
-			}
-		}
-	}
+    stage('3. 编译打包') {
+      steps {
+        container('base') {
+          sh 'mvn package -DskipTests'
+        }
+      }
+    }
 
-	post {
-		success {
-			echo "✅ Pipeline 成功！镜像: ${FULL_IMAGE}"
-		}
-		failure {
-			echo "❌ Pipeline 失败，请检查日志"
-		}
-	}
+    stage('4. 构建镜像') {
+      steps {
+        container('base') {
+          sh """
+            echo "Building image: ${FULL_IMAGE}"
+            nerdctl build \\
+              -f ci/Dockerfile \\
+              -t ${FULL_IMAGE} \\
+              --label "build_number=${BUILD_NUMBER}" \\
+              --label "git_commit=${GIT_COMMIT}" \\
+              .
+          """
+        }
+      }
+    }
+
+    stage('5. 推送镜像到 Harbor') {
+      steps {
+        container('base') {
+          withCredentials([usernamePassword(
+            credentialsId: 'harbor-id',
+            usernameVariable: 'HARBOR_USER',
+            passwordVariable: 'HARBOR_PASS'
+          )]) {
+            sh """
+              echo "\${HARBOR_PASS}" | nerdctl login ${HARBOR_ADDR} -u \${HARBOR_USER} --password-stdin --insecure-registry
+              nerdctl push ${FULL_IMAGE} --insecure-registry
+              nerdctl tag ${FULL_IMAGE} ${IMAGE}:latest
+              nerdctl push ${IMAGE}:latest --insecure-registry
+            """
+          }
+        }
+      }
+    }
+
+    stage('6. 更新 GitOps 仓库') {
+      steps {
+        container('base') {
+          withCredentials([usernamePassword(credentialsId: 'git-id')]) {
+            sh """
+              git config user.email "ci@kubesphere.local"
+              git config user.name "CI Bot"
+
+              # 更新镜像版本
+              sed -i "s|image:.*|image: ${FULL_IMAGE}|" k8s/dev/deployment.yaml
+
+              git add k8s/dev/deployment.yaml
+              git commit -m "Auto update image to ${IMAGE_TAG} [skip ci]"
+              git push origin HEAD:${GIT_BRANCH}
+            """
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "✅ Pipeline 成功！镜像: ${FULL_IMAGE}"
+    }
+    failure {
+      echo "❌ Pipeline 失败，请检查日志"
+    }
+  }
 }
