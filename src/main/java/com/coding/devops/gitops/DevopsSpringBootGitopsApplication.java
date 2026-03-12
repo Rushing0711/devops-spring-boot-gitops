@@ -15,7 +15,7 @@ public class DevopsSpringBootGitopsApplication {
 
     @GetMapping("/")
     public String hello() {
-        return "Hello from GitOps! Version: " + System.getenv("VERSION");
+        return "Hello from GitOps! Version is: " + System.getenv("VERSION");
     }
 
 }
