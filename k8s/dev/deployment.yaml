@@ -18,6 +18,8 @@ spec:
         app: devops-spring-boot-gitops
         env: dev
     spec:
+      imagePullSecrets:
+        - name: harbor-secret
       containers:
         - name: devops-spring-boot-gitops
           # 这个镜像版本会被 CI 自动更新
