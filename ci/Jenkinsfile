@@ -16,15 +16,6 @@ pipeline {
   }
 
   stages {
-  stage('Test execution context') {
-    steps {
-      sh 'echo "Without container: $(hostname)"'
-      container('base') {
-        sh 'echo "With container base: $(hostname)"'
-      }
-    }
-  }
-
     stage('0. 检查环境') {
       steps {
         container('base') {
@@ -39,10 +30,8 @@ pipeline {
 
     stage('1. 检出代码') {
       steps {
-          container('base') {
-              checkout scm
-              sh 'git log -1 --pretty=format:"Commit: %h - %s"'
-          }
+        checkout scm
+        sh 'git log -1 --pretty=format:"Commit: %h - %s"'
       }
     }
 
@@ -100,7 +89,7 @@ pipeline {
 
     stage('6. 更新 GitOps 仓库') {
       steps {
-          container('base') {
+//          container('base') {
               withCredentials([gitUsernamePassword(credentialsId: 'github-id')]) {
                 sh """
                   git config user.email "ci@kubesphere.local"
@@ -114,7 +103,7 @@ pipeline {
                   git push origin HEAD:${GIT_BRANCH}
                 """
               }
-          }
+//          }
       }
     }
   }
