@@ -75,11 +75,7 @@ pipeline {
     stage('5. 推送镜像到 Harbor') {
       steps {
         container('base') {
-          withCredentials([usernamePassword(
-            credentialsId: 'harbor-id',
-            usernameVariable: 'HARBOR_USER',
-            passwordVariable: 'HARBOR_PASS'
-          )]) {
+          withCredentials([usernamePassword( credentialsId: 'harbor-id', usernameVariable: 'HARBOR_USER', passwordVariable: 'HARBOR_PASS' )]) {
             sh """
               echo "\${HARBOR_PASS}" | nerdctl login ${HARBOR_ADDR} -u \${HARBOR_USER} --password-stdin --insecure-registry
               nerdctl push ${FULL_IMAGE} --insecure-registry
@@ -94,7 +90,7 @@ pipeline {
     stage('6. 更新 GitOps 仓库') {
       steps {
         container('base') {
-          withCredentials([usernamePassword(credentialsId: 'github-id')]) {
+          withCredentials([usernamePassword(credentialsId: 'github-id', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
             sh """
               git config user.email "ci@kubesphere.local"
               git config user.name "CI Bot"
