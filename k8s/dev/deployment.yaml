@@ -23,7 +23,7 @@ spec:
       containers:
         - name: devops-spring-boot-gitops
           # 这个镜像版本会被 CI 自动更新
-          image: 192.168.200.116:30002/ks-devops-harbor/devops-spring-boot-gitops:21
+          image: 192.168.200.116:30002/ks-devops-harbor/devops-spring-boot-gitops:22
           ports:
             - containerPort: 8080
           resources:
