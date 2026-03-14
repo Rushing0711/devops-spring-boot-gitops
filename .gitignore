@@ -34,3 +34,4 @@ build/
 
 ### Customized ###
 .java-version
+.DS_Store
