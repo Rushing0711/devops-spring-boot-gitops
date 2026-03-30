@@ -88,4 +88,55 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>nexus-profile</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
+            <!-- 配置依赖仓库 -->
+            <repositories>
+                <repository>
+                    <id>nexus-public</id>
+                    <name>My Nexus Public Repository</name>
+                    <url>http://192.168.200.116:30081/repository/maven-public/</url>
+                    <!-- 控制是否允许下载正式版依赖 -->
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <!-- 控制是否允许下载快照版依赖 -->
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
+
+    <!-- 配置插件仓库 -->
+    <pluginRepositories>
+        <pluginRepository>
+            <id>nexus-public-plugins</id>
+            <name>My Nexus Public Plugin Repository</name>
+            <url>http://192.168.200.116:30081/repository/maven-public/</url>
+            <!-- 控制是否允许下载正式版插件 -->
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <!-- 控制是否允许下载快照版插件 -->
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <!-- 向私服中发布jar时配置 -->
+    <distributionManagement>
+        <repository>
+            <id>nexus</id><!-- ID必须和setting.xml文件中server的id一致 -->
+            <url>http://192.168.200.116:30081/repository/maven-private/</url>
+        </repository>
+    </distributionManagement>
+
 </project>
